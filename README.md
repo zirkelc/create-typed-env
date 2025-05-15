@@ -1,128 +1,186 @@
-# TypeScript Single Package Project Template
+# typesafe-env
 
-This template provides an opinionated setup for a single package TypeScript project.
+A type-safe proxy for accessing environment variables.
 
-## 🚀 Features
+## Installation
 
-- 📦 [PNPM](https://pnpm.io/) for efficient package management
-- 🧹 [Biome](https://biomejs.dev/) for linting and formatting
-- 🧪 [Vitest](https://vitest.dev/) for fast, modern testing
-- 🏗️ [unbuild](https://github.com/unjs/unbuild) for TypeScript building and bundling
-- 🏃‍♂️ [tsx](https://tsx.is/) for running TypeScript files
-- 🐶 [Husky](https://github.com/typicode/husky) for Git hooks
-- 🔄 [GitHub Actions](.github/workflows/ci.yml) for continuous integration
-- 🐞 [VSCode](.vscode/) debug configuration and editor settings
-- 🔧 [@total-typescript/tsconfig](https://github.com/total-typescript/tsconfig) for TypeScript configuration
-- 🎯 [Are The Types Wrong?](https://github.com/arethetypeswrong/arethetypeswrong.github.io) for type validation
-
-## 🚀 Getting Started
-
-### 1. Create a new repository
-
-Create a new repository [using this template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
-
-### 2. Replace placeholders
-
-Replace all occurences of the following placeholders with the correct values:
-
-| Placeholder | File | Description |
-| --- | --- | --- |
-| `<PACKAGE>` | `package.json` | Your package name |
-| `<DESCRIPTION>` | `package.json` | Your package description |
-| `<USERNAME>` | `package.json` | Your GitHub username |
-| `<REPO>` | `package.json` | Your repository name |
-| `<AUTHOR>` | `package.json` | Your name |
-| `<LICENSE>` | `package.json` | Your license |
-
-### 3. Apply ToDos
-
-Find all occurrences of `TODO` and apply them:
-
-| TODO | File | Description |
-| --- | --- | --- |
-| `TODO: PREVIEW` | `.github/workflows/ci.yml` | Create [preview releases](#preview-releases) |
-| `TODO: PUBLISH` | `.github/workflows/ci.yml` | [Publish to NPM](#publish-npm) |
-
-### 4. Install, Build, Test
-
-Verify your project is working by running `install`, `build`, and `test`:
-
-```sh
-pnpm install
-pnpm build
-pnpm test
+```bash
+npm install typesafe-env
 ```
 
-Happy coding! 🎉
+## Usage
 
-## 📋 Details
 
-### Package
+```typescript
+import { createEnv } from 'typesafe-env';
 
-The [`package.json`](package.json) is configured as ESM (`"type": "module"`), but supports dual publishing with both ESM and CJS module formats.
+/**
+ * Define your environment variables. 
+ * This type can also be imported from a generated file or inferred from a schema.
+ */
+type Env = {
+  DATABASE_URL: string;
+  PORT: string;
+};
 
-### Biome
+/**
+ * Create a typed environment with properties for each environment variable.
+ */
+const env = createEnv<Env>();
 
-[`biome.jsonc`](biome.jsonc) contains the default [Biome configuration](https://biomejs.dev/reference/configuration/) with minimal formatting adjustments. It uses the formatter settings from the [`.editorconfig`](.editorconfig) file.
+/**
+ * Access environment variables.
+ * This will throw an error if the environment variable is not defined at runtime.
+ */
+const dbUrl = env.DATABASE_URL;
+env.PORT = '3000';
+```
 
-### Vitest
+### Lazy Mode
 
-An empty Vitest config is provided in [`vitest.config.ts`](vitest.config.ts).
+Lazy mode turns the properties into getter and setter functions.
 
-### Build and Run
+```typescript
+/**
+ * Create a typed environment with lazy mode.
+ */
+const env = createEnv<Env>({ lazy: true });
 
-- `unbuild` builds `./src/index.ts`, outputting both ESM and CJS formats to the `dist` folder.
-- `tsx` compiles and runs TypeScript files on-the-fly.
+/**
+ * All environment variables are now getter and setter functions.
+ */
+const dbUrl = env.DATABASE_URL();
+env.PORT('3000');
+```
 
-### Git Hooks
+This is useful if you want to pass a reference to an environment variable without actually reading the value, because it might not set yet:
 
-[Husky](https://github.com/typicode/husky) runs the [.husky/pre-commit](.husky/pre-commit) hook to lint staged files.
+```ts
+const env = createEnv<Env>({ lazy: true });
 
-### Continuous Integration
+class Database {
+  dbUrl: () => string;
+  client: Client | undefined;
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) defines a GitHub Actions workflow to run linting and tests on commits and pull requests.
+  constructor(dbUrl: () => string) {
+    this.dbUrl = dbUrl;
+  }
 
-### VSCode Integration
+  async query(sql: string) {
+    if (!this.client) {
+      this.client = new Client(this.dbUrl());
+    }
 
-#### Debugging
+    return this.client.query(sql);
+  }
+}
 
-[`.vscode/launch.json`](.vscode/launch.json) provides VSCode launch configurations:
-- `Debug (tsx)`: Run and debug TypeScript files
-- `Test (vitest)`: Debug tests
+/**
+ * Pass a lazy environment variable reference to the constructor.
+ * The environment variable is not set yet.
+ */
+const db = new Database(env.DATABASE_URL);
 
-It uses the [JavaScript Debug Terminal](https://code.visualstudio.com/docs/nodejs/nodejs-debugging) to run and debug.
+/**
+ * Set the environment variable at runtime.
+ */
+env.DATABASE_URL('new_db_url');
 
-#### Editor Settings
+/**
+ * This will access the environment variable lazily and connect to the database.
+ */
+await db.query('SELECT * FROM users');
+```
 
-[`.vscode/settings.json`](.vscode/settings.json) configures Biome as the formatter and enables format-on-save.
+### Fallback Values
 
-### EditorConfig
+You can provide fallback values for missing environment variables. This is useful in test environments when a missing environment variable is not a problem.
 
-[`.editorconfig`](.editorconfig) ensures consistent coding styles across different editors and IDEs:
+```typescript
+/**
+ * Single fallback value for all missing environment variables.
+ */
+const env = createEnv<Env>({
+  fallback: 'default_value',
+});
 
-- Uses spaces for indentation (2 spaces)
-- Sets UTF-8 charset
-- Ensures LF line endings
-- Trims trailing whitespace (except in Markdown files)
-- Inserts a final newline in files
+/**
+ * Fallback values for specific environment variables.
+ */
+const env = createEnv<Env>({
+  fallback: {
+    PORT: '3000',
+  },
+});
 
-This configuration complements Biome and helps maintain a consistent code style throughout the project.
+/**
+ * Fallback values per Node.js environment.
+ */
+const env = createEnv<Env>({
+  fallback: {
+    env: {
+      development: {
+        DATABASE_URL: 'dev_db_url',
+        PORT: '3000',
+      },
+      test: {
+        DATABASE_URL: 'test_db_url',
+        PORT: '3000',
+      },
+      production: {
+        DATABASE_URL: 'prod_db_url',
+        PORT: '3000',
+      },
+    },
+  },
+});
+```
 
-### Type Validation
+### Logging
 
-The project includes the `@arethetypeswrong/cli` CLI tool to validate TypeScript types in your package. Run `pnpm typecheck` after building to ensure your package's types are correct and compatible with both ESM and CommonJS environments.
+Enable logging to see warnings when environment variables are missing. This is useful to catch missing environment variables at runtime.
 
-## Optional
+```typescript
+/**
+ * Log warnings when environment variables are missing.
+ */
+const env = createEnv<Env>({
+  fallback: 'default_value',
+  log: true,
+});
 
-### <a name="publish-npm"></a> Publish to NPM
-[JS-DevTools/npm-publish](https://github.com/JS-DevTools/npm-publish) is a GitHub Action to publish packages to npm automatically by updating the version number.
+/**
+ * Log warnings when environment variables are missing per Node.js environment.
+ */
+const env = createEnv<Env>({
+  fallback: 'default_value',
+  log: {
+    env: { 
+      development: true, 
+      test: true, 
+      production: true 
+    },
+  },
+});
 
-To enable this, apply the `TODO: PUBLISH`.
+/**
+ * This will return the fallback value because the environment variable is not set and log it to the console.
+ */
+const dbUrl = env.DATABASE_URL;
+```
 
-### <a name="preview-releases"></a> Preview Releases
+## API Reference
 
-[pkg.pr.new](https://github.com/stackblitz-labs/pkg.pr.new) will automatically generate preview releases for every push and pull request. This allows you to test changes before publishing to npm.
+### `createEnv<TEnv extends Record<string, any>>(options?: CreateEnvOptions)`
 
-Must install GitHub App: [pkg.pr.new](https://github.com/apps/pkg-pr-new)
+Creates a type-safe environment variable manager.
 
-To enable this, apply the `TODO: PREVIEW`.
+#### Options
+
+- `lazy?: boolean` - If true, environment variables will be getter and setter functions
+- `fallback?: string | Record<string, string> | NodeEnvs<string | Record<string, string>>` - Fallback values for missing environment variables
+- `log?: boolean | NodeEnvs<boolean>` - If true, missing environment variables will be logged to the console
+
+## License
+
+MIT
