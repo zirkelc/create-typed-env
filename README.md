@@ -10,6 +10,7 @@ npm install typesafe-env
 
 ## Usage
 
+The `createEnv` function creates a Proxy around `process.env` and throws an error if you try to access an undefined environment variable. The generic type `createEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
 
 ```typescript
 import { createEnv } from 'typesafe-env';
@@ -53,7 +54,7 @@ const dbUrl = env.DATABASE_URL();
 env.PORT('3000');
 ```
 
-This is useful if you want to pass a reference to an environment variable without actually reading the value, because it might not set yet:
+This is useful if you want to pass a reference to an environment variable without actually reading the value because it might not be set yet:
 
 ```ts
 const env = createEnv<Env>({ lazy: true });
@@ -114,7 +115,7 @@ const env = createEnv<Env>({
 });
 
 /**
- * Fallback values per Node.js environment.
+ * Fallback values per Node.js environments.
  */
 const env = createEnv<Env>({
   fallback: {
@@ -150,7 +151,7 @@ const env = createEnv<Env>({
 });
 
 /**
- * Log warnings when environment variables are missing per Node.js environment.
+ * Log warnings when environment variables are missing per Node.js environments.
  */
 const env = createEnv<Env>({
   fallback: 'default_value',
@@ -164,7 +165,7 @@ const env = createEnv<Env>({
 });
 
 /**
- * This will return the fallback value because the environment variable is not set and log it to the console.
+ * This will return the fallback value because the environment variable is not set, and it will be logged to the console.
  */
 const dbUrl = env.DATABASE_URL;
 ```
