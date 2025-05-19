@@ -1,5 +1,5 @@
 {
-  "name": "typsafe-env",
+  "name": "@zirkelc/typed-env",
   "version": "0.0.0",
   "description": "A type-safe proxy for accessing environment variables",
   "packageManager": "pnpm@9.0.0",
@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zirkelc/typesafe-env"
+    "url": "https://github.com/zirkelc/@zirkelc/typed-env"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.1",

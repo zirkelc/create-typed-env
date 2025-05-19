@@ -1,11 +1,11 @@
-# typesafe-env
+# @zirkelc/typed-env
 
 A type-safe proxy for accessing environment variables.
 
 ## Installation
 
 ```bash
-npm install typesafe-env
+npm install @zirkelc/typed-env
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install typesafe-env
 The `createEnv` function creates a Proxy around `process.env` and throws an error if you try to access an undefined environment variable. The generic type `createEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
 
 ```typescript
-import { createEnv } from 'typesafe-env';
+import { createEnv } from '@zirkelc/typed-env';
 
 /**
  * Define your environment variables. 
