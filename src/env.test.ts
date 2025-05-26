@@ -114,6 +114,32 @@ describe('createEnv', () => {
     });
   });
 
+  describe('env', () => {
+    test('should use process.env if no env option is provided', () => {
+      // Arrange
+      const env = createEnv<{ TEST_VAR: string }>();
+
+      // Act
+      const value = env.TEST_VAR;
+
+      // Assert
+      expect(value).toBe('test_value');
+    });
+
+    test('should use env option if provided', () => {
+      // Arrange
+      const env = createEnv<{ TEST_VAR: string }>({
+        env: { TEST_VAR: 'env_value' },
+      });
+
+      // Act
+      const value = env.TEST_VAR;
+
+      // Assert
+      expect(value).toBe('env_value');
+    });
+  });
+
   describe('fallback', () => {
     test('should use string fallback', () => {
       // Arrange

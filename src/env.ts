@@ -25,6 +25,11 @@ type Log = boolean | NodeEnvs<boolean>;
  */
 type CreateEnvOptions<TLazy extends boolean> = {
   /**
+   * The source of environment variables.
+   * Defaults to `process.env`.
+   */
+  env?: NodeJS.ProcessEnv | Record<string, string>;
+  /**
    * If true, the environment variable will be getter and setter functions.
    * Otherwise, the environment variable will be a direct property.
    */
@@ -66,62 +71,68 @@ export function createEnv<TEnv extends Record<string, any>>(
 export function createEnv(options?: CreateEnvOptions<boolean>) {
   // TODO: add zod schema for validation of process.env values and infer types
 
-  const { lazy, fallback, log } = options ?? {};
+  const { lazy, fallback, log, env = process.env } = options ?? {};
 
   const logger = (message: string) => {
+    const nodeEnv = env?.NODE_ENV;
+
     if (!log) return;
     if (typeof log === 'boolean') {
       console.warn(message);
     } else if (
       typeof log === 'object' &&
-      process.env.NODE_ENV in log &&
-      log[process.env.NODE_ENV]
+      nodeEnv &&
+      nodeEnv in log &&
+      log[nodeEnv as keyof typeof log]
     ) {
       console.warn(message);
     }
   };
 
   const getEnvValue = (key: string): string => {
-    if (!(key in process.env)) {
-      if (fallback) {
-        if (typeof fallback === 'string') {
-          logger(
-            `Environment variable ${key} not found, using fallback '${fallback}'`,
-          );
-          return fallback;
-        }
+    if (key in env) return env[key]!;
 
-        if (typeof fallback === 'object') {
-          const env =
-            'env' in fallback && typeof fallback.env === 'object'
-              ? fallback.env[process.env.NODE_ENV as keyof typeof fallback.env]
-              : fallback;
-
-          if (typeof env === 'string') {
-            logger(
-              `Environment variable ${key} not found, using fallback '${env}'`,
-            );
-            return env;
-          }
-
-          if (key in env) {
-            logger(
-              `Environment variable ${key} not found, using fallback '${env[key]}'`,
-            );
-            return env[key];
-          }
-        }
-      }
-
+    if (!fallback) {
       logger(`Environment variable ${key} not found`);
       throw new Error(`Environment variable ${key} not found`);
     }
 
-    return process.env[key]!;
+    if (typeof fallback === 'string') {
+      logger(
+        `Environment variable ${key} not found, using fallback '${fallback}'`,
+      );
+      return fallback;
+    }
+
+    if (typeof fallback === 'object') {
+      const fallbackEnv =
+        'env' in fallback && typeof fallback.env === 'object'
+          ? (fallback.env[process.env.NODE_ENV as keyof typeof fallback.env] as
+              | string
+              | Record<string, string>)
+          : (fallback as Record<string, string>);
+
+      if (typeof fallbackEnv === 'string') {
+        logger(
+          `Environment variable ${key} not found, using fallback '${fallbackEnv}'`,
+        );
+        return fallbackEnv;
+      }
+
+      if (key in fallbackEnv && typeof fallbackEnv[key] === 'string') {
+        logger(
+          `Environment variable ${key} not found, using fallback '${fallbackEnv[key]}'`,
+        );
+        return fallbackEnv[key];
+      }
+    }
+
+    logger(`Invalid fallback value for environment variable ${key}`);
+    throw new Error(`Invalid fallback value for environment variable ${key}`);
   };
 
   const setEnvValue = (key: string, value: string) => {
-    process.env[key] = value;
+    env[key] = value;
   };
 
   return new Proxy({} as any, {
