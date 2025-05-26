@@ -10,7 +10,7 @@ npm install @zirkelc/typed-env
 
 ## Usage
 
-The `createEnv` function creates a Proxy around `process.env` and throws an error if you try to access an undefined environment variable. The generic type `createEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
+The `createEnv` function creates a Proxy around `process.env` or `import.meta.env` and throws an error if you try to access an undefined environment variable. The generic type `createEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
 
 ```typescript
 import { createEnv } from '@zirkelc/typed-env';
@@ -137,6 +137,14 @@ const env = createEnv<Env>({
 });
 ```
 
+### Environment Variables
+
+You can pass a custom environment variable object to the `createEnv` function. This is useful if you work in a non-Node.js environment like the browser.
+
+```typescript
+const env = createEnv<Env>({ env: import.meta.env });
+```
+
 ### Logging
 
 Enable logging to see warnings when environment variables are missing. This is useful to catch missing environment variables at runtime.
@@ -178,6 +186,7 @@ Creates a type-safe environment variable manager.
 
 #### Options
 
+- `env?: Record<string, string>` - Environment variable object, defaults to `process.env`
 - `lazy?: boolean` - If true, environment variables will be getter and setter functions
 - `fallback?: string | Record<string, string> | NodeEnvs<string | Record<string, string>>` - Fallback values for missing environment variables
 - `log?: boolean | NodeEnvs<boolean>` - If true, missing environment variables will be logged to the console
