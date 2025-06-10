@@ -58,17 +58,17 @@ type TypedEnv<
 /**
  * Creates a type-safe proxy for accessing environment variables.
  */
-export function createEnv<TEnv extends Record<string, any>>(
+export function createTypedEnv<TEnv extends Record<string, any>>(
   options?: CreateEnvOptions<false>,
 ): TypedEnv<TEnv, false>;
-export function createEnv<TEnv extends Record<string, any>>(
+export function createTypedEnv<TEnv extends Record<string, any>>(
   options: CreateEnvOptions<true>,
 ): TypedEnv<TEnv, true>;
 
 /**
  * Creates a type-safe proxy for accessing environment variables.
  */
-export function createEnv(options?: CreateEnvOptions<boolean>) {
+export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
   // TODO: add zod schema for validation of process.env values and infer types
 
   const { lazy, fallback, log, env = process.env } = options ?? {};

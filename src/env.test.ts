@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { createEnv } from './env.js';
+import { createTypedEnv } from './env.js';
 
 // Arrange
 beforeEach(() => {
@@ -13,11 +13,11 @@ afterEach(() => {
   process.env.NODE_ENV = undefined;
 });
 
-describe('createEnv', () => {
+describe('createTypedEnv', () => {
   describe('eager mode', () => {
     test('should get value', () => {
       // Arrange
-      const env = createEnv<{ TEST_VAR: string }>();
+      const env = createTypedEnv<{ TEST_VAR: string }>();
 
       // Act
       const value = env.TEST_VAR;
@@ -28,7 +28,7 @@ describe('createEnv', () => {
 
     test('should set value', () => {
       // Arrange
-      const env = createEnv<{ NEW_VAR: string }>();
+      const env = createTypedEnv<{ NEW_VAR: string }>();
 
       // Act
       env.NEW_VAR = 'new_value';
@@ -40,7 +40,7 @@ describe('createEnv', () => {
 
     test('should throw error when variable is not found', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>();
+      const env = createTypedEnv<{ MISSING_VAR: string }>();
 
       // Act
       const result = () => env.MISSING_VAR;
@@ -51,7 +51,7 @@ describe('createEnv', () => {
 
     test('should throw error when setting non-string value in eager mode', () => {
       // Arrange
-      const env = createEnv<{ NEW_VAR: string }>();
+      const env = createTypedEnv<{ NEW_VAR: string }>();
 
       // Act
       const result = () => {
@@ -67,7 +67,7 @@ describe('createEnv', () => {
   describe('lazy mode', () => {
     test('should get value', () => {
       // Arrange
-      const env = createEnv<{ TEST_VAR: string }>({ lazy: true });
+      const env = createTypedEnv<{ TEST_VAR: string }>({ lazy: true });
 
       // Act
       const value = env.TEST_VAR();
@@ -78,7 +78,7 @@ describe('createEnv', () => {
 
     test('should set value', () => {
       // Arrange
-      const env = createEnv<{ NEW_VAR: string }>({ lazy: true });
+      const env = createTypedEnv<{ NEW_VAR: string }>({ lazy: true });
 
       // Act
       env.NEW_VAR('new_value');
@@ -90,7 +90,7 @@ describe('createEnv', () => {
 
     test('should throw error when variable is not found', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>({ lazy: true });
+      const env = createTypedEnv<{ MISSING_VAR: string }>({ lazy: true });
 
       // Act
       const result = () => env.MISSING_VAR();
@@ -101,7 +101,7 @@ describe('createEnv', () => {
 
     test('should throw error when setting value via assignment in lazy mode', () => {
       // Arrange
-      const env = createEnv<{ NEW_VAR: string }>({ lazy: true });
+      const env = createTypedEnv<{ NEW_VAR: string }>({ lazy: true });
 
       // Act
       const result = () => {
@@ -117,7 +117,7 @@ describe('createEnv', () => {
   describe('env', () => {
     test('should use process.env if no env option is provided', () => {
       // Arrange
-      const env = createEnv<{ TEST_VAR: string }>();
+      const env = createTypedEnv<{ TEST_VAR: string }>();
 
       // Act
       const value = env.TEST_VAR;
@@ -128,7 +128,7 @@ describe('createEnv', () => {
 
     test('should use env option if provided', () => {
       // Arrange
-      const env = createEnv<{ TEST_VAR: string }>({
+      const env = createTypedEnv<{ TEST_VAR: string }>({
         env: { TEST_VAR: 'env_value' },
       });
 
@@ -143,7 +143,7 @@ describe('createEnv', () => {
   describe('fallback', () => {
     test('should use string fallback', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: 'fallback_value',
       });
 
@@ -156,7 +156,7 @@ describe('createEnv', () => {
 
     test('should use object fallback', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: {
           MISSING_VAR: 'object_fallback',
         },
@@ -171,7 +171,7 @@ describe('createEnv', () => {
 
     test('should use environment-specific string fallback', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: {
           env: {
             development: 'dev_fallback',
@@ -190,7 +190,7 @@ describe('createEnv', () => {
 
     test('should use environment-specific object fallback', () => {
       // Arrange
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: {
           env: {
             development: {
@@ -218,7 +218,7 @@ describe('createEnv', () => {
     test('should log when log option is enabled', () => {
       // Arrange
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: 'fallback_value',
         log: true,
       });
@@ -234,7 +234,7 @@ describe('createEnv', () => {
     test('should not log when log option is disabled', () => {
       // Arrange
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: 'fallback_value',
         log: false,
       });
@@ -251,7 +251,7 @@ describe('createEnv', () => {
       // Arrange
       process.env.NODE_ENV = 'development';
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: 'fallback_value',
         log: {
           development: true,
@@ -272,7 +272,7 @@ describe('createEnv', () => {
       // Arrange
       process.env.NODE_ENV = 'development';
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      const env = createEnv<{ MISSING_VAR: string }>({
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
         fallback: 'fallback_value',
         log: {
           development: false,

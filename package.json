@@ -1,7 +1,7 @@
 {
-  "name": "@zirkelc/typed-env",
-  "version": "0.1.0",
-  "description": "A type-safe proxy for accessing environment variables",
+  "name": "create-typed-env",
+  "version": "0.0.0",
+  "description": "Create a type-safe proxy for accessing environment variables",
   "packageManager": "pnpm@9.0.0",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -38,7 +38,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/zirkelc/@zirkelc/typed-env"
+    "url": "https://github.com/zirkelc/create-typed-env"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.1",
