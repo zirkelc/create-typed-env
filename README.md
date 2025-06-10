@@ -1,19 +1,19 @@
-# @zirkelc/typed-env
+# create-typed-env
 
-A type-safe proxy for accessing environment variables.
+Create a type-safe proxy for accessing environment variables.
 
 ## Installation
 
 ```bash
-npm install @zirkelc/typed-env
+npm install create-typed-env
 ```
 
 ## Usage
 
-The `createEnv` function creates a Proxy around `process.env` or `import.meta.env` and throws an error if you try to access an undefined environment variable. The generic type `createEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
+The `createTypedEnv` function creates a Proxy around `process.env` or `import.meta.env` and throws an error if you try to access an undefined environment variable. The generic type `createTypedEnv<Env>` is used to define the shape of the environment variables which are available. This could be static type or it could be inferred from a schema or imported from a generated file.
 
 ```typescript
-import { createEnv } from '@zirkelc/typed-env';
+import { createTypedEnv } from 'create-typed-env';
 
 /**
  * Define your environment variables. 
@@ -27,7 +27,7 @@ type Env = {
 /**
  * Create a typed environment with properties for each environment variable.
  */
-const env = createEnv<Env>();
+const env = createTypedEnv<Env>();
 
 /**
  * Access environment variables.
@@ -45,7 +45,7 @@ Lazy mode turns the properties into getter and setter functions.
 /**
  * Create a typed environment with lazy mode.
  */
-const env = createEnv<Env>({ lazy: true });
+const env = createTypedEnv<Env>({ lazy: true });
 
 /**
  * All environment variables are now getter and setter functions.
@@ -57,7 +57,7 @@ env.PORT('3000');
 This is useful if you want to pass a reference to an environment variable without actually reading the value because it might not be set yet:
 
 ```ts
-const env = createEnv<Env>({ lazy: true });
+const env = createTypedEnv<Env>({ lazy: true });
 
 class Database {
   dbUrl: () => string;
@@ -101,14 +101,14 @@ You can provide fallback values for missing environment variables. This is usefu
 /**
  * Single fallback value for all missing environment variables.
  */
-const env = createEnv<Env>({
+const env = createTypedEnv<Env>({
   fallback: 'default_value',
 });
 
 /**
  * Fallback values for specific environment variables.
  */
-const env = createEnv<Env>({
+const env = createTypedEnv<Env>({
   fallback: {
     PORT: '3000',
   },
@@ -117,7 +117,7 @@ const env = createEnv<Env>({
 /**
  * Fallback values per Node.js environments.
  */
-const env = createEnv<Env>({
+const env = createTypedEnv<Env>({
   fallback: {
     env: {
       development: {
@@ -142,7 +142,7 @@ const env = createEnv<Env>({
 You can pass a custom environment variable object to the `createEnv` function. This is useful if you work in a non-Node.js environment like the browser.
 
 ```typescript
-const env = createEnv<Env>({ env: import.meta.env });
+const env = createTypedEnv<Env>({ env: import.meta.env });
 ```
 
 ### Logging
@@ -153,7 +153,7 @@ Enable logging to see warnings when environment variables are missing. This is u
 /**
  * Log warnings when environment variables are missing.
  */
-const env = createEnv<Env>({
+const env = createTypedEnv<Env>({
   fallback: 'default_value',
   log: true,
 });
@@ -161,7 +161,7 @@ const env = createEnv<Env>({
 /**
  * Log warnings when environment variables are missing per Node.js environments.
  */
-const env = createEnv<Env>({
+const env = createTypedEnv<Env>({
   fallback: 'default_value',
   log: {
     env: { 
@@ -180,7 +180,7 @@ const dbUrl = env.DATABASE_URL;
 
 ## API Reference
 
-### `createEnv<TEnv extends Record<string, any>>(options?: CreateEnvOptions)`
+### `createTypedEnv<TEnv extends Record<string, any>>(options?: CreateEnvOptions)`
 
 Creates a type-safe environment variable manager.
 
