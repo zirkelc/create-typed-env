@@ -102,7 +102,7 @@ You can provide fallback values for missing environment variables. This is usefu
  * Single fallback value for all missing environment variables.
  */
 const env = createTypedEnv<Env>({
-  fallback: 'default_value',
+  fallback: 'fallback_value',
 });
 
 /**
@@ -111,6 +111,19 @@ const env = createTypedEnv<Env>({
 const env = createTypedEnv<Env>({
   fallback: {
     PORT: '3000',
+  },
+});
+
+/**
+ * Fallback values per Node.js environments.
+ */
+const env = createTypedEnv<Env>({
+  fallback: {
+    env: {
+      development: 'dev_fallback',
+      test: 'test_fallback',
+      production: 'prod_fallback',
+    },
   },
 });
 
@@ -154,7 +167,7 @@ Enable logging to see warnings when environment variables are missing. This is u
  * Log warnings when environment variables are missing.
  */
 const env = createTypedEnv<Env>({
-  fallback: 'default_value',
+  fallback: 'fallback_value',
   log: true,
 });
 
@@ -162,7 +175,7 @@ const env = createTypedEnv<Env>({
  * Log warnings when environment variables are missing per Node.js environments.
  */
 const env = createTypedEnv<Env>({
-  fallback: 'default_value',
+  fallback: 'fallback_value',
   log: {
     env: { 
       development: true, 
