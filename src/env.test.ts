@@ -169,6 +169,19 @@ describe('createTypedEnv', () => {
       expect(value).toBe('object_fallback');
     });
 
+    test('should use function fallback', () => {
+      // Arrange
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
+        fallback: (key) => `${key}_fallback`,
+      });
+
+      // Act
+      const value = env.MISSING_VAR;
+
+      // Assert
+      expect(value).toBe('MISSING_VAR_fallback');
+    });
+
     test('should use environment-specific string fallback', () => {
       // Arrange
       const env = createTypedEnv<{ MISSING_VAR: string }>({
@@ -211,6 +224,25 @@ describe('createTypedEnv', () => {
 
       // Assert
       expect(value).toBe('dev_fallback');
+    });
+
+    test('should use environment-specific function fallback', () => {
+      // Arrange
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
+        fallback: {
+          env: {
+            development: (key) => `${key}_dev_fallback`,
+            test: (key) => `${key}_test_fallback`,
+            production: (key) => `${key}_prod_fallback`,
+          },
+        },
+      });
+
+      // Act
+      const value = env.MISSING_VAR;
+
+      // Assert
+      expect(value).toBe('MISSING_VAR_dev_fallback');
     });
   });
 

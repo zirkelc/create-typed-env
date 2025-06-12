@@ -1,4 +1,13 @@
 /**
+ * Fallback value for missing environment variables.
+ * Supports string, object and environment-specific fallback values.
+ */
+type FallbackValue =
+  | string
+  | Record<string, string>
+  | ((key: string) => string);
+
+/**
  * Fallback values for environment variables per Node.js environment.
  */
 type NodeEnvs<TValue> = {
@@ -12,10 +21,9 @@ type NodeEnvs<TValue> = {
  * Supports string, object and environment-specific fallback values.
  */
 type Fallback =
-  | string
-  | Record<string, string>
+  | FallbackValue
   | {
-      env: NodeEnvs<string | Record<string, string>>;
+      env: NodeEnvs<FallbackValue>;
     };
 
 type Log = boolean | NodeEnvs<boolean>;
@@ -55,6 +63,7 @@ type TypedEnv<
   : {
       -readonly [K in keyof TEnv]: string;
     };
+
 /**
  * Creates a type-safe proxy for accessing environment variables.
  */
@@ -89,6 +98,31 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
     }
   };
 
+  const getFallbackValue = (fallback: Fallback | undefined, key: string) => {
+    if (typeof fallback === 'string') return fallback;
+
+    if (typeof fallback === 'function') return fallback(key);
+
+    if (typeof fallback === 'object') {
+      if ('env' in fallback && typeof fallback.env === 'object') {
+        const fallbackEnv =
+          fallback.env[process.env.NODE_ENV as keyof typeof fallback.env];
+
+        return getFallbackValue(fallbackEnv, key);
+      }
+
+      if (key in fallback) {
+        const fallbackValue = fallback[key as keyof typeof fallback] as Record<
+          string,
+          string
+        >;
+        return getFallbackValue(fallbackValue, key);
+      }
+    }
+
+    throw new Error(`Invalid fallback value: ${fallback}`);
+  };
+
   const getEnvValue = (key: string): string => {
     if (key in env) return env[key]!;
 
@@ -97,34 +131,12 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
       throw new Error(`Environment variable ${key} not found`);
     }
 
-    if (typeof fallback === 'string') {
+    const fallbackValue = getFallbackValue(fallback, key);
+    if (fallbackValue) {
       logger(
-        `Environment variable ${key} not found, using fallback '${fallback}'`,
+        `Environment variable ${key} not found, using fallback: ${fallbackValue}`,
       );
-      return fallback;
-    }
-
-    if (typeof fallback === 'object') {
-      const fallbackEnv =
-        'env' in fallback && typeof fallback.env === 'object'
-          ? (fallback.env[process.env.NODE_ENV as keyof typeof fallback.env] as
-              | string
-              | Record<string, string>)
-          : (fallback as Record<string, string>);
-
-      if (typeof fallbackEnv === 'string') {
-        logger(
-          `Environment variable ${key} not found, using fallback '${fallbackEnv}'`,
-        );
-        return fallbackEnv;
-      }
-
-      if (key in fallbackEnv && typeof fallbackEnv[key] === 'string') {
-        logger(
-          `Environment variable ${key} not found, using fallback '${fallbackEnv[key]}'`,
-        );
-        return fallbackEnv[key];
-      }
+      return fallbackValue;
     }
 
     logger(`Invalid fallback value for environment variable ${key}`);

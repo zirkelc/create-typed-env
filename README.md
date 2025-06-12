@@ -115,6 +115,22 @@ const env = createTypedEnv<Env>({
 });
 
 /**
+ * Dynamic fallback values.
+ */
+const env = createTypedEnv<Env>({
+  fallback: (key) => {
+    console.log(`Environment variable not found: ${key}`);
+    
+    switch (key) {
+      case 'PORT':
+        return '3000';
+      default:
+        return 'fallback_value';
+    }
+  },
+});
+
+/**
  * Fallback values per Node.js environments.
  */
 const env = createTypedEnv<Env>({
@@ -143,7 +159,9 @@ const env = createTypedEnv<Env>({
       },
       production: {
         DATABASE_URL: 'prod_db_url',
-        PORT: '3000',
+        PORT: () => {
+          throw new Error('PORT is not set');
+        },
       },
     },
   },
