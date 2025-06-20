@@ -103,7 +103,7 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
 
     if (typeof fallback === 'function') return fallback(key);
 
-    if (typeof fallback === 'object') {
+    if (typeof fallback === 'object' && fallback) {
       if ('env' in fallback && typeof fallback.env === 'object') {
         const fallbackEnv =
           fallback.env[process.env.NODE_ENV as keyof typeof fallback.env];
