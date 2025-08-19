@@ -98,7 +98,12 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
     }
   };
 
-  const getFallbackValue = (fallback: Fallback | undefined, key: string) => {
+  const getFallbackValue = (
+    fallback: Fallback | undefined,
+    key: string,
+  ): string | undefined => {
+    if (fallback === undefined) return undefined;
+
     if (typeof fallback === 'string') return fallback;
 
     if (typeof fallback === 'function') return fallback(key);
@@ -132,15 +137,17 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
     }
 
     const fallbackValue = getFallbackValue(fallback, key);
-    if (fallbackValue) {
+    if (fallbackValue !== undefined) {
       logger(
         `Environment variable ${key} not found, using fallback: ${fallbackValue}`,
       );
       return fallbackValue;
     }
 
-    logger(`Invalid fallback value for environment variable ${key}`);
-    throw new Error(`Invalid fallback value for environment variable ${key}`);
+    logger(`Environment variable ${key} not found and no fallback available`);
+    throw new Error(
+      `Environment variable ${key} not found and no fallback available`,
+    );
   };
 
   const setEnvValue = (key: string, value: string) => {
@@ -148,7 +155,7 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
   };
 
   return new Proxy({} as any, {
-    get(target, prop: string) {
+    get(_target, prop: string) {
       if (lazy) {
         return (value?: string) => {
           if (value !== undefined) {
@@ -160,7 +167,7 @@ export function createTypedEnv(options?: CreateEnvOptions<boolean>) {
 
       return getEnvValue(prop);
     },
-    set(target, prop: string, value: any) {
+    set(_target, prop: string, value: any) {
       if (!lazy) {
         // Only allow setting via assignment if not lazy
         if (typeof value !== 'string') {

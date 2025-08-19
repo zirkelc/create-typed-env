@@ -244,6 +244,23 @@ describe('createTypedEnv', () => {
       // Assert
       expect(value).toBe('MISSING_VAR_dev_fallback');
     });
+
+    test('should handle missing environment-specific fallback', () => {
+      // Arrange
+      process.env.NODE_ENV = 'production';
+      const env = createTypedEnv<{ MISSING_VAR: string }>({
+        fallback: {
+          env: {
+            development: 'dev_fallback',
+            test: 'test_fallback',
+            // production fallback is missing
+          },
+        },
+      });
+
+      // Act & Assert
+      expect(() => env.MISSING_VAR).toThrow();
+    });
   });
 
   describe('log', () => {
